@@ -18,6 +18,7 @@ export function ArtifactView() {
   const selectedProjectId = useLibraryStore((s) => s.selectedProjectId);
   const selectedArtifactId = useLibraryStore((s) => s.selectedArtifactId);
   const selectArtifact = useLibraryStore((s) => s.selectArtifact);
+  const deleteArtifact = useLibraryStore((s) => s.deleteArtifact);
   const artifact = useLibraryStore((s) => s.artifacts.find((a) => a.id === s.selectedArtifactId));
 
   const [source, setSource] = useState<string>("");
@@ -114,6 +115,16 @@ export function ArtifactView() {
             </button>
           )}
           <button onClick={() => setIsChatOpen((v) => !v)}>{isChatOpen ? "Close chat" : "Ask AI"}</button>
+          <button
+            className="delete-button"
+            onClick={() => {
+              if (window.confirm(`Delete "${artifact.title}"? This can't be undone.`)) {
+                deleteArtifact(artifact.id);
+              }
+            }}
+          >
+            Delete
+          </button>
         </div>
       </header>
 

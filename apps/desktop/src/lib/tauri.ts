@@ -3,8 +3,8 @@ import type { ArtifactManifest, Project } from "@satchel/artifact-core";
 
 export const backend = {
   listProjects: () => invoke<Project[]>("list_projects"),
-  createProject: (name: string, color: string | null) =>
-    invoke<Project>("create_project", { name, color }),
+  createProject: (name: string, color: string | null, parentId: string | null) =>
+    invoke<Project>("create_project", { name, color, parentId }),
   listArtifacts: (projectId: string) =>
     invoke<ArtifactManifest[]>("list_artifacts", { projectId }),
   importArtifact: (projectId: string, sourcePath: string) =>
@@ -15,8 +15,10 @@ export const backend = {
     invoke<void>("save_artifact_source", { projectId, artifactId, content }),
   moveArtifact: (artifactId: string, fromProjectId: string, toProjectId: string) =>
     invoke<ArtifactManifest>("move_artifact", { artifactId, fromProjectId, toProjectId }),
+  deleteArtifact: (projectId: string, artifactId: string) =>
+    invoke<void>("delete_artifact", { projectId, artifactId }),
   rebuildIndex: () => invoke<void>("rebuild_index"),
-  searchArtifacts: (query: string) => invoke<string[]>("search_artifacts", { query }),
+  searchArtifacts: (query: string) => invoke<ArtifactManifest[]>("search_artifacts", { query }),
   saveSecret: (providerId: string, value: string) =>
     invoke<void>("save_secret", { providerId, value }),
   getSecret: (providerId: string) => invoke<string | null>("get_secret", { providerId }),

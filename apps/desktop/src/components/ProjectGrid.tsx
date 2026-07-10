@@ -16,6 +16,7 @@ export function ProjectGrid() {
   const selectArtifact = useLibraryStore((s) => s.selectArtifact);
   const importPaths = useLibraryStore((s) => s.importPaths);
   const moveArtifact = useLibraryStore((s) => s.moveArtifact);
+  const deleteArtifact = useLibraryStore((s) => s.deleteArtifact);
   const projects = useLibraryStore((s) => s.projects);
   const selectedProjectId = useLibraryStore((s) => s.selectedProjectId);
   const project = projects.find((p) => p.id === selectedProjectId);
@@ -49,25 +50,38 @@ export function ProjectGrid() {
                 <span className="artifact-card-type">{TYPE_LABEL[artifact.type] ?? artifact.type}</span>
                 <span className="artifact-card-title">{artifact.title}</span>
               </button>
-              {otherProjects.length > 0 && (
-                <select
-                  className="artifact-card-move"
-                  value=""
-                  onChange={(e) => {
-                    const targetId = e.target.value;
-                    if (targetId) moveArtifact(artifact.id, selectedProjectId, targetId);
+              <div className="artifact-card-footer">
+                {otherProjects.length > 0 && (
+                  <select
+                    className="artifact-card-move"
+                    value=""
+                    onChange={(e) => {
+                      const targetId = e.target.value;
+                      if (targetId) moveArtifact(artifact.id, selectedProjectId, targetId);
+                    }}
+                  >
+                    <option value="" disabled>
+                      Move to…
+                    </option>
+                    {otherProjects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <button
+                  className="artifact-card-delete"
+                  title="Delete artifact"
+                  onClick={() => {
+                    if (window.confirm(`Delete "${artifact.title}"? This can't be undone.`)) {
+                      deleteArtifact(artifact.id);
+                    }
                   }}
                 >
-                  <option value="" disabled>
-                    Move to…
-                  </option>
-                  {otherProjects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>

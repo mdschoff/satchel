@@ -10,14 +10,19 @@ pub fn list_projects(state: State<AppState>) -> Result<Vec<Project>, String> {
 }
 
 #[tauri::command]
-pub fn create_project(state: State<AppState>, name: String, color: Option<String>) -> Result<Project, String> {
+pub fn create_project(
+    state: State<AppState>,
+    name: String,
+    color: Option<String>,
+    parent_id: Option<String>,
+) -> Result<Project, String> {
     let now = library::now_iso();
     let project = Project {
         schema_version: CURRENT_SCHEMA_VERSION,
         id: library::new_id(),
         name,
         color,
-        parent_id: None,
+        parent_id,
         created_at: now.clone(),
         updated_at: now,
     };
@@ -97,6 +102,20 @@ pub fn move_artifact(
     let conn = state.db.lock().map_err(|e| e.to_string())?;
     db::upsert_artifact(&conn, &manifest).map_err(|e| e.to_string())?;
     Ok(manifest)
+}
+
+#[tauri::command]
+pub fn delete_artifact(
+    state: State<AppState>,
+    project_id: String,
+    artifact_id: String,
+) -> Result<(), String> {
+    let dir = library::artifact_dir(&state.library_root, &project_id, &artifact_id);
+    fs::remove_dir_all(&dir).map_err(|e| e.to_string())?;
+
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    db::delete_artifact(&conn, &artifact_id).map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 #[tauri::command]
