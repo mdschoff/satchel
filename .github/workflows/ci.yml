@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+# CI only builds and type-checks - the token never needs write access.
+permissions:
+  contents: read
+
 jobs:
   frontend:
     runs-on: macos-latest

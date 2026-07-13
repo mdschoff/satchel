@@ -5,3 +5,4 @@ target/
 .DS_Store
 gen/
 *.tsbuildinfo
+.claude/settings.local.json
