@@ -51,6 +51,7 @@ pub fn run() {
             commands::library::get_artifact_source,
             commands::library::save_artifact_source,
             commands::library::move_artifact,
+            commands::library::rename_artifact,
             commands::library::delete_artifact,
             commands::library::list_artifact_versions,
             commands::library::restore_artifact_version,

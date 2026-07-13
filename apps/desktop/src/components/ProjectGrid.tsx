@@ -29,6 +29,7 @@ export function ProjectGrid() {
   const importPaths = useLibraryStore((s) => s.importPaths);
   const moveArtifact = useLibraryStore((s) => s.moveArtifact);
   const moveArtifacts = useLibraryStore((s) => s.moveArtifacts);
+  const renameArtifact = useLibraryStore((s) => s.renameArtifact);
   const deleteArtifact = useLibraryStore((s) => s.deleteArtifact);
   const projects = useLibraryStore((s) => s.projects);
   const selectedProjectId = useLibraryStore((s) => s.selectedProjectId);
@@ -45,6 +46,8 @@ export function ProjectGrid() {
   const [menu, setMenu] = useState<Menu | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [ghost, setGhost] = useState<{ count: number; x: number; y: number } | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
@@ -155,6 +158,17 @@ export function ProjectGrid() {
     setMenu(null);
   }
 
+  function startRename(artifactId: string, currentTitle: string) {
+    setMenu(null);
+    setRenamingId(artifactId);
+    setRenameValue(currentTitle);
+  }
+
+  function commitRename() {
+    if (renamingId) renameArtifact(renamingId, renameValue);
+    setRenamingId(null);
+  }
+
   async function handleImportClick() {
     const selectedPaths = await open({ multiple: true });
     if (!selectedPaths) return;
@@ -219,7 +233,23 @@ export function ProjectGrid() {
                   <span className={`artifact-card-type type-${artifact.type}`}>
                     {TYPE_LABEL[artifact.type] ?? artifact.type}
                   </span>
-                  <span className="artifact-card-title">{artifact.title}</span>
+                  {renamingId === artifact.id ? (
+                    <input
+                      className="artifact-rename-input"
+                      autoFocus
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.currentTarget.value)}
+                      onBlur={commitRename}
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitRename();
+                        else if (e.key === "Escape") setRenamingId(null);
+                      }}
+                    />
+                  ) : (
+                    <span className="artifact-card-title">{artifact.title}</span>
+                  )}
                 </span>
               </div>
             </div>
@@ -249,6 +279,14 @@ export function ProjectGrid() {
           <div className="context-menu" style={{ left: menu.x, top: menu.y }} role="menu">
             {menu.kind === "card" ? (
               <>
+                <button
+                  className="context-menu-item"
+                  role="menuitem"
+                  onClick={() => startRename(menu.artifactId, menu.title)}
+                >
+                  Rename
+                </button>
+                <div className="context-menu-sep" />
                 <div className="context-menu-label">Move to</div>
                 {otherProjects.length === 0 ? (
                   <div className="context-menu-empty">No other projects</div>

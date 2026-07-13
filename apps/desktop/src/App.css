@@ -726,6 +726,16 @@ body.dnd-active {
   width: 100%;
 }
 
+.artifact-rename-input {
+  width: 100%;
+  padding: 0.15rem 0.35rem;
+  font-size: 1rem;
+  font-weight: 550;
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  color: var(--text);
+}
+
 /* ---- Right-click context menu (move / delete) ---- */
 
 .context-menu-backdrop {

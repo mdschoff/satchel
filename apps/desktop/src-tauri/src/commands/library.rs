@@ -148,6 +148,23 @@ pub fn move_artifact(
 }
 
 #[tauri::command]
+pub fn rename_artifact(
+    state: State<AppState>,
+    project_id: String,
+    artifact_id: String,
+    title: String,
+) -> Result<ArtifactManifest, String> {
+    let mut manifest = library::read_manifest(&state.library_root, &project_id, &artifact_id)
+        .map_err(|e| e.to_string())?;
+    manifest.title = title;
+    manifest.updated_at = library::now_iso();
+    library::write_manifest(&state.library_root, &manifest).map_err(|e| e.to_string())?;
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    db::upsert_artifact(&conn, &manifest).map_err(|e| e.to_string())?;
+    Ok(manifest)
+}
+
+#[tauri::command]
 pub fn delete_artifact(
     state: State<AppState>,
     project_id: String,
