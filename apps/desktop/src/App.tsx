@@ -8,6 +8,7 @@ import { ProjectGrid } from "./components/ProjectGrid";
 import { ArtifactView } from "./components/ArtifactView";
 import { Settings } from "./components/Settings";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { Welcome } from "./components/Welcome";
 import "./App.css";
 
 export default function App() {
@@ -111,6 +112,7 @@ export default function App() {
           )}
         </ErrorBoundary>
       </main>
+      <Welcome />
     </div>
   );
 }

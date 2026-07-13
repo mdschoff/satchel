@@ -3,6 +3,7 @@ import { aiProviders } from "../ai/registry";
 import { useApiKeyStore } from "../state/apiKeys";
 import { useSettingsStore } from "../state/settings";
 import { useUiStore } from "../state/ui";
+import { useOnboardingStore } from "../state/onboarding";
 
 // Must match MCP_PORT in apps/desktop/src-tauri/src/mcp.rs.
 const MCP_URL = "http://127.0.0.1:7825/mcp";
@@ -18,6 +19,7 @@ const MCP_JSON = `{
 
 export function Settings() {
   const setView = useUiStore((s) => s.setView);
+  const reopenWelcome = useOnboardingStore((s) => s.reopen);
   const providerSettings = useSettingsStore((s) => s.providers);
   const updateProviderSettings = useSettingsStore((s) => s.updateProviderSettings);
   const keys = useApiKeyStore((s) => s.keys);
@@ -133,6 +135,11 @@ export function Settings() {
             button.”</em>
           </p>
         </div>
+
+        <h2>About</h2>
+        <button className="settings-replay" onClick={() => reopenWelcome()}>
+          Replay welcome guide
+        </button>
       </div>
     </div>
   );
