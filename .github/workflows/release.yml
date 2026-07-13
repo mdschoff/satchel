@@ -1,0 +1,100 @@
+name: Release
+
+# Builds signed-by-CI installers from a clean checkout of the tagged commit
+# and attaches them to a draft GitHub Release. Publish is a manual click -
+# nothing ships without a human looking at it.
+#
+# Usage: bump the version in tauri.conf.json + package.json, then
+#   git tag vX.Y.Z && git push --tags
+# (workflow_dispatch also works, to attach builds for the version currently
+# in tauri.conf.json - e.g. backfilling an existing release.)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # Fail fast if the tag doesn't match the app's own version - prevents a
+  # v0.2.0 release whose About box says 0.1.0.
+  verify-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag matches tauri.conf.json and package.json
+        run: |
+          APP_VERSION=$(jq -r .version apps/desktop/src-tauri/tauri.conf.json)
+          PKG_VERSION=$(jq -r .version apps/desktop/package.json)
+          echo "app: $APP_VERSION / package: $PKG_VERSION / ref: $GITHUB_REF_NAME"
+          if [ "$APP_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::tauri.conf.json ($APP_VERSION) and package.json ($PKG_VERSION) disagree"
+            exit 1
+          fi
+          if [[ "$GITHUB_REF" == refs/tags/* && "$GITHUB_REF_NAME" != "v$APP_VERSION" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match app version v$APP_VERSION"
+            exit 1
+          fi
+
+  build:
+    needs: verify-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: --target universal-apple-darwin
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - platform: windows-latest
+            args: ""
+            rust-targets: ""
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+      - run: pnpm install --frozen-lockfile
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          # v__VERSION__ resolves from tauri.conf.json, so tag pushes and
+          # manual dispatches both target the right release.
+          tagName: v__VERSION__
+          releaseName: "Satchel v__VERSION__"
+          releaseDraft: true
+          args: ${{ matrix.args }}
+
+  # Attach a SHA256SUMS.txt so downloads are verifiable.
+  checksums:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate and upload checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v$(jq -r .version apps/desktop/src-tauri/tauri.conf.json)"
+          mkdir -p /tmp/assets && cd /tmp/assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "*" || true
+          rm -f SHA256SUMS.txt
+          if ls * >/dev/null 2>&1; then
+            sha256sum * > SHA256SUMS.txt
+            gh release upload "$TAG" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --clobber
+            cat SHA256SUMS.txt
+          else
+            echo "::warning::no assets found on $TAG yet"
+          fi
