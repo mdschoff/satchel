@@ -13,7 +13,11 @@ interface ChatDrawerProps {
 export function ChatDrawer({ artifact, source, onApplyEdit }: ChatDrawerProps) {
   const activeProviderId = useSettingsStore((s) => s.activeProviderId);
   const setActiveProvider = useSettingsStore((s) => s.setActiveProvider);
-  const providerSettings = useSettingsStore((s) => s.providers[activeProviderId] ?? {});
+  // Select the stable providers map and derive the per-provider settings here.
+  // Returning `... ?? {}` straight from the selector hands zustand a new object
+  // reference every render, which it reads as a state change → infinite loop.
+  const providers = useSettingsStore((s) => s.providers);
+  const providerSettings = providers[activeProviderId] ?? {};
 
   const apiKey = useApiKeyStore((s) => s.keys[activeProviderId] ?? "");
   const loadKey = useApiKeyStore((s) => s.loadKey);

@@ -25,6 +25,7 @@ interface LibraryState {
   search: (query: string) => Promise<void>;
   clearSearch: () => void;
   openSearchResult: (artifact: ArtifactManifest) => void;
+  syncExternal: () => Promise<void>;
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
@@ -143,5 +144,18 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       searchResults: [],
     });
     get().refreshArtifacts();
+  },
+
+  // Refresh projects + current artifacts without the loading flicker, in
+  // response to an out-of-band change (e.g. an AI client mutating the library
+  // over MCP).
+  async syncExternal() {
+    try {
+      const projects = await backend.listProjects();
+      set({ projects });
+      await get().refreshArtifacts();
+    } catch (err) {
+      set({ error: String(err) });
+    }
   },
 }));

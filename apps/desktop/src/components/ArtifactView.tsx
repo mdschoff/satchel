@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
+import { confirm } from "@tauri-apps/plugin-dialog";
+import { listen } from "@tauri-apps/api/event";
 import { useLibraryStore } from "../state/library";
 import { backend } from "../lib/tauri";
 import { getRenderer } from "../renderers/registry";
@@ -78,6 +80,20 @@ export function ArtifactView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedArtifactId]);
 
+  // When an MCP client edits the artifact that's currently open, reload its
+  // source live so you can watch the model work through it.
+  useEffect(() => {
+    if (!selectedArtifactId) return;
+    const unlisten = listen<{ artifactId?: string }>("library:changed", (event) => {
+      if (event.payload?.artifactId === selectedArtifactId) {
+        loadSource();
+      }
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [selectedArtifactId, loadSource]);
+
   function handleEditorChange(value: string | undefined) {
     const next = value ?? "";
     setSource(next);
@@ -121,10 +137,14 @@ export function ArtifactView() {
           <button onClick={() => setIsChatOpen((v) => !v)}>{isChatOpen ? "Close chat" : "Ask AI"}</button>
           <button
             className="delete-button"
-            onClick={() => {
-              if (window.confirm(`Delete "${artifact.title}"? This can't be undone.`)) {
-                deleteArtifact(artifact.id);
-              }
+            onClick={async () => {
+              const ok = await confirm(`Delete "${artifact.title}"? This can't be undone.`, {
+                title: "Delete artifact",
+                kind: "warning",
+                okLabel: "Delete",
+                cancelLabel: "Cancel",
+              });
+              if (ok) deleteArtifact(artifact.id);
             }}
           >
             Delete
