@@ -57,12 +57,15 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // In a shipped build, suppress WebKit's native right-click menu (Inspect
-  // Element, Open Frame in New Window, …) so the only context menus are the
-  // app's own. Left enabled in dev so devtools stay reachable.
+  // Suppress WebKit's native right-click menu (Reload, Inspect Element, …)
+  // everywhere so the only context menus are the app's own - right-click does
+  // something only where there's a real action. In dev, Shift+right-click still
+  // opens the native menu so devtools/inspect stay reachable while building.
   useEffect(() => {
-    if (!import.meta.env.PROD) return;
-    const onContextMenu = (e: MouseEvent) => e.preventDefault();
+    const onContextMenu = (e: MouseEvent) => {
+      if (import.meta.env.DEV && e.shiftKey) return;
+      e.preventDefault();
+    };
     document.addEventListener("contextmenu", onContextMenu);
     return () => document.removeEventListener("contextmenu", onContextMenu);
   }, []);
