@@ -7,3 +7,7 @@ allowBuilds:
   esbuild: true
 onlyBuiltDependencies:
   - esbuild
+# Force the patched dompurify past monaco-editor's transitive pin
+# (16 Dependabot advisories against <=3.4.10).
+overrides:
+  dompurify: ">=3.4.11"
