@@ -8,7 +8,6 @@ export const ollamaProvider: AIProvider = {
   id: "ollama",
   label: "Ollama (local)",
   requiresApiKey: false,
-  requiresBaseUrl: true,
 
   async edit(request: AIEditRequest, config: AIProviderConfig): Promise<AIEditResult> {
     const baseUrl = config.baseUrl ?? DEFAULT_BASE_URL;
