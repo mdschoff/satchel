@@ -6,6 +6,7 @@ import { useLibraryStore } from "../state/library";
 import { backend } from "../lib/tauri";
 import { getRenderer } from "../renderers/registry";
 import { ChatDrawer } from "./ChatDrawer";
+import { NoteEditor } from "./NoteEditor";
 import { VersionHistory } from "./VersionHistory";
 
 const EDITABLE_TYPES = new Set(["html", "svg", "markdown", "jsx", "tsx"]);
@@ -103,10 +104,13 @@ export function ArtifactView() {
     };
   }, [selectedArtifactId, loadSource]);
 
-  function handleEditorChange(value: string | undefined) {
-    const next = value ?? "";
+  const isNote = artifact?.type === "markdown";
+
+  // Shared save path for both the code pane and the in-document note editor.
+  function updateSource(next: string) {
     setSource(next);
-    renderSource(next);
+    // Notes render in the document editor itself; no iframe re-render needed.
+    if (!isNote) renderSource(next);
 
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     saveTimeout.current = setTimeout(() => {
@@ -114,6 +118,10 @@ export function ArtifactView() {
         backend.saveArtifactSource(selectedProjectId, selectedArtifactId, next);
       }
     }, 500);
+  }
+
+  function handleEditorChange(value: string | undefined) {
+    updateSource(value ?? "");
   }
 
   async function handleAIEdit(newSource: string) {
@@ -225,7 +233,9 @@ export function ArtifactView() {
         )}
 
         <div className="artifact-preview-pane">
-          {compileError ? (
+          {isNote ? (
+            <NoteEditor key={artifact.id} markdown={source} onChange={updateSource} />
+          ) : compileError ? (
             <pre className="compile-error">{compileError}</pre>
           ) : (
             <iframe

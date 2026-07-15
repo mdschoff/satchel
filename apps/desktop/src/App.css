@@ -960,6 +960,109 @@ body.dnd-active {
   font-size: 0.85em;
 }
 
+/* ---- In-document note editing (markdown artifacts) ---- */
+
+.note-editor {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--surface);
+  cursor: text;
+}
+
+.note-editor .ProseMirror {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-6) 40vh; /* generous bottom space to click into */
+  outline: none;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.note-editor .ProseMirror h1 {
+  font-size: 1.9em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 1.2em 0 0.5em;
+}
+
+.note-editor .ProseMirror h1:first-child {
+  margin-top: 0;
+}
+
+.note-editor .ProseMirror h2 {
+  font-size: 1.45em;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 1.2em 0 0.45em;
+}
+
+.note-editor .ProseMirror h3 {
+  font-size: 1.15em;
+  font-weight: 600;
+  margin: 1.1em 0 0.4em;
+}
+
+.note-editor .ProseMirror p {
+  margin: 0.55em 0;
+}
+
+.note-editor .ProseMirror ul,
+.note-editor .ProseMirror ol {
+  padding-left: 1.4em;
+  margin: 0.55em 0;
+}
+
+.note-editor .ProseMirror li {
+  margin: 0.2em 0;
+}
+
+.note-editor .ProseMirror blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 0.8em 0;
+  padding: 0.1em 0 0.1em 1em;
+  color: var(--text-muted);
+}
+
+.note-editor .ProseMirror code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.88em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 0.1em 0.35em;
+}
+
+.note-editor .ProseMirror pre {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-3) var(--sp-4);
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+
+.note-editor .ProseMirror pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+.note-editor .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5em 0;
+}
+
+.note-editor .ProseMirror a {
+  color: var(--accent);
+}
+
+.note-editor .ProseMirror strong {
+  font-weight: 650;
+}
+
 .view-error {
   padding: var(--sp-5) var(--sp-6);
   overflow: auto;
