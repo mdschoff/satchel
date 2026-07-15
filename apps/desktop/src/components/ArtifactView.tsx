@@ -8,6 +8,7 @@ import { getRenderer } from "../renderers/registry";
 import { ChatDrawer } from "./ChatDrawer";
 import { NoteEditor } from "./NoteEditor";
 import { VersionHistory } from "./VersionHistory";
+import { useLayoutStore } from "../state/layout";
 
 const EDITABLE_TYPES = new Set(["html", "svg", "markdown", "jsx", "tsx"]);
 const MONACO_LANGUAGE: Record<string, string> = {
@@ -38,10 +39,14 @@ export function ArtifactView() {
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Resizable split: code pane as % of the body, side drawers in px.
+  // Persisted so a layout dragged into shape survives restarts.
   const bodyRef = useRef<HTMLDivElement | null>(null);
-  const [editorPct, setEditorPct] = useState(45);
-  const [historyWidth, setHistoryWidth] = useState(288);
-  const [chatWidth, setChatWidth] = useState(336);
+  const editorPct = useLayoutStore((s) => s.editorPct);
+  const historyWidth = useLayoutStore((s) => s.historyWidth);
+  const chatWidth = useLayoutStore((s) => s.chatWidth);
+  const setEditorPct = useLayoutStore((s) => s.setEditorPct);
+  const setHistoryWidth = useLayoutStore((s) => s.setHistoryWidth);
+  const setChatWidth = useLayoutStore((s) => s.setChatWidth);
 
   /** Generic divider drag: applies clientX against the body's rect until mouseup. */
   function startResize(e: React.MouseEvent, apply: (clientX: number, rect: DOMRect) => void) {
